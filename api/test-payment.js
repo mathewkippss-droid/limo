@@ -25,11 +25,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         amount: amount,
         phone_number: phone_number,
-        channel_id: 133,
+        channel_id: 4356,
         provider: "m-pesa",
         external_reference: "INV-" + Date.now(),
         customer_name: "Test User",
-        callback_url: "https://your-site.vercel.app/api/callback"
+        callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
       })
     });
 
