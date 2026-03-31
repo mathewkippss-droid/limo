@@ -1,28 +1,49 @@
-const axios = require('axios');
-
-const config = {
-  method: 'POST',
-  url: 'https://backend.payhero.co.ke/api/v2/payments',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Basic YOUR_AUTH_TOKEN',
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
-,
-  data: {
-  "amount": 100,
-  "phone_number": "0787677676",
-  "channel_id": 133,
-  "provider": "m-pesa",
-  "external_reference": "INV-009",
-  "customer_name": "John Doe",
-  "callback_url": "https://example.com/callback.php"
-}
-};
 
-axios(config)
-  .then(function (response) {
-    console.log(JSON.stringify(response.data));
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
+  try {
+    const {
+      phone_number,
+      amount
+    } = req.body;
+
+    if (!phone_number || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields"
+      });
+    }
+
+    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Basic ${process.env.PAYHERO_AUTH_TOKEN}`
+      },
+      body: JSON.stringify({
+        amount: amount,
+        phone_number: phone_number,
+        channel_id: 133,
+        provider: "m-pesa",
+        external_reference: "INV-" + Date.now(),
+        customer_name: "Test User",
+        callback_url: "https://your-site.vercel.app/api/callback"
+      })
+    });
+
+    const data = await response.json();
+
+    return res.status(200).json({
+      success: true,
+      payhero: data
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}
