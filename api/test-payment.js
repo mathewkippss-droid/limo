@@ -1,26 +1,28 @@
-import requests
+const axios = require('axios');
 
-# Your actual Basic Auth token from PayHero
-YOUR_BASIC_AUTH_TOKEN = "Basic QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ=="
-
-BASE_URL = "https://backend.payhero.co.ke"
-ENDPOINT = "/api/v2/payment_channels"
-
-url = f"{BASE_URL}{ENDPOINT}"
-
-headers = {
-    "Authorization": f"Basic {YOUR_BASIC_AUTH_TOKEN}",
-    "Content-Type": "application/json"
+const config = {
+  method: 'POST',
+  url: 'https://backend.payhero.co.ke/api/v2/payments',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic YOUR_AUTH_TOKEN',
+  }
+,
+  data: {
+  "amount": 100,
+  "phone_number": "0787677676",
+  "channel_id": 133,
+  "provider": "m-pesa",
+  "external_reference": "INV-009",
+  "customer_name": "John Doe",
+  "callback_url": "https://example.com/callback.php"
 }
+};
 
-try:
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        print("Successfully retrieved payment channels:")
-        print(response.json())
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-
-except requests.exceptions.RequestException as e:
-    print(f"An error occurred: {e}")
+axios(config)
+  .then(function (response) {
+    console.log(JSON.stringify(response.data));
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
