@@ -25,19 +25,25 @@ export default async function handler(req, res) {
 
     console.log("Sending to PayHero:", phone, amount);
 
-   const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Basic ${process.env.PAYHERO_AUTH_TOKEN}`
-  },
-  body: JSON.stringify({
-    phone_number: phone,
-    amount: amount,
-    external_reference: "TEST-" + Date.now(),
-    description: "Test Payment"
-  })
-});
+     const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
+
+    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Basic ${AUTH_TOKEN}`
+      },
+      body: JSON.stringify({
+        amount: amount,
+        phone_number: phone_number,
+        channel_id: 5284,
+        provider: "m-pesa",
+        external_reference: "INV-" + Date.now(),
+        customer_name: "Test User",
+        callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
+      })
+    });
+
 
     let data;
     try {
