@@ -1,76 +1,58 @@
 export default async function handler(req, res) {
-  // Only allow POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // Parse body safely
     let body = req.body;
     if (typeof body === "string") {
       body = JSON.parse(body);
     }
 
-    const {
-      phone_number,
-      amount,
-      loan_amount,
-      id_number
-    } = body;
+    const { phone_number, amount } = body;
 
-    // Basic validation
+    console.log("Incoming request:", body);
+
     if (!phone_number || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing phone number or amount"
+        message: "Phone number and amount are required"
       });
     }
 
-    // Format phone (ensure +254)
-    let formattedPhone = phone_number;
-    if (!formattedPhone.startsWith("254")) {
-      formattedPhone = "254" + formattedPhone;
-    }
+    // Ensure correct format: 2547XXXXXXXX
+    let phone = phone_number.replace(/\D/g, "");
+    if (phone.startsWith("0")) phone = "254" + phone.substring(1);
+    if (!phone.startsWith("254")) phone = "254" + phone;
 
-    // 🔥 PAYHERO API CALL
-    const payheroResponse = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+    console.log("Formatted phone:", phone);
+
+    // 🔥 PAYHERO REQUEST
+    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.PAYHERO_API_KEY}`
       },
       body: JSON.stringify({
-        phone_number: formattedPhone,
+        phone_number: phone,
         amount: amount,
-        external_reference: `FULIZA-${Date.now()}`,
-        description: `Fuliza Boost Ksh ${loan_amount}`
+        external_reference: "TEST-" + Date.now(),
+        description: "Test Payment"
       })
     });
 
-    const data = await payheroResponse.json();
+    const data = await response.json();
 
-    // Log for debugging (check in Vercel logs)
     console.log("PayHero response:", data);
 
-    // Handle PayHero response
-    if (!payheroResponse.ok) {
-      return res.status(500).json({
-        success: false,
-        message: data.message || "Payment initiation failed",
-        raw: data
-      });
-    }
-
-    // Return success to frontend
     return res.status(200).json({
       success: true,
-      reference: data.reference || data.checkout_request_id,
-      message: "STK push sent successfully",
-      raw: data
+      payhero: data
     });
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error("ERROR:", error);
 
     return res.status(500).json({
       success: false,
