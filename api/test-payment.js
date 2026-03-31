@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${AUTH_TOKEN}`
+        "Authorization": `Basic ${QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==}`
       },
       body: JSON.stringify({
         amount: amount,
