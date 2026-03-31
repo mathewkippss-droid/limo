@@ -4,10 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const {
-      phone_number,
-      amount
-    } = req.body;
+    const { phone_number, amount } = req.body;
 
     if (!phone_number || !amount) {
       return res.status(400).json({
@@ -16,11 +13,14 @@ export default async function handler(req, res) {
       });
     }
 
+    // 🔴 IMPORTANT: REPLACE THIS WITH YOUR REAL TOKEN
+    const AUTH_TOKEN = "Basic QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
+
     const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${process.env.PAYHERO_AUTH_TOKEN}`
+        "Authorization": `Basic ${AUTH_TOKEN}`
       },
       body: JSON.stringify({
         amount: amount,
