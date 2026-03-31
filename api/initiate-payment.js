@@ -1,9 +1,11 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ message: "Method not allowed" });
+    }
+
+    console.log("ENV KEY:", process.env.PAYHERO_API_KEY);
+
     let body = req.body;
     if (typeof body === "string") {
       body = JSON.parse(body);
@@ -11,29 +13,24 @@ export default async function handler(req, res) {
 
     const { phone_number, amount } = body;
 
-    console.log("Incoming request:", body);
-
     if (!phone_number || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Phone number and amount are required"
+        message: "Missing phone or amount"
       });
     }
 
-    // Ensure correct format: 2547XXXXXXXX
     let phone = phone_number.replace(/\D/g, "");
     if (phone.startsWith("0")) phone = "254" + phone.substring(1);
-    if (!phone.startsWith("254")) phone = "254" + phone;
 
-    console.log("Formatted phone:", phone);
+    console.log("Sending to PayHero:", phone, amount);
 
-    // 🔥 PAYHERO REQUEST
     const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
       headers: {
-  "Content-Type": "application/json",
-  "Authorization": process.env.PAYHERO_API_KEY
-}
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.PAYHERO_API_KEY}` // revert to safe format
+      },
       body: JSON.stringify({
         phone_number: phone,
         amount: amount,
@@ -42,7 +39,14 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      const text = await response.text();
+      console.log("Non-JSON response:", text);
+      throw new Error("Invalid JSON from PayHero");
+    }
 
     console.log("PayHero response:", data);
 
@@ -52,11 +56,11 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("ERROR:", error);
+    console.error("FULL ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: error.message
+      error: error.message
     });
   }
 }
