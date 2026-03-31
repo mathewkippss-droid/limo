@@ -25,19 +25,19 @@ export default async function handler(req, res) {
 
     console.log("Sending to PayHero:", phone, amount);
 
-    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.PAYHERO_API_KEY}` // revert to safe format
-      },
-      body: JSON.stringify({
-        phone_number: phone,
-        amount: amount,
-        external_reference: "TEST-" + Date.now(),
-        description: "Test Payment"
-      })
-    });
+   const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Basic ${process.env.PAYHERO_AUTH_TOKEN}`
+  },
+  body: JSON.stringify({
+    phone_number: phone,
+    amount: amount,
+    external_reference: "TEST-" + Date.now(),
+    description: "Test Payment"
+  })
+});
 
     let data;
     try {
