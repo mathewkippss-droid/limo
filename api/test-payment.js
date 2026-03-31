@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         amount: amount,
         phone_number: phone_number,
-        channel_id: 4356,
+        channel_id: 5284,
         provider: "m-pesa",
         external_reference: "INV-" + Date.now(),
         customer_name: "Test User",
