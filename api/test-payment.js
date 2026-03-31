@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     }
 
     // 🔴 IMPORTANT: REPLACE THIS WITH YOUR REAL TOKEN
-    const AUTH_TOKEN = "Basic QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
+    const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
 
     const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
