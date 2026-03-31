@@ -31,9 +31,9 @@ export default async function handler(req, res) {
     const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": process.env.PAYHERO_API_KEY
-      },
+  "Content-Type": "application/json",
+  "Authorization": process.env.PAYHERO_API_KEY
+}
       body: JSON.stringify({
         phone_number: phone,
         amount: amount,
