@@ -1,22 +1,39 @@
-export default async function handler(req, res) {
-  const { reference } = req.query;
+// /api/verify-payment.js
 
-  if (!reference) {
-    return res.status(400).json({ message: 'Missing reference' });
-  }
+let payments = {}; // shared temporary store
 
+export default function handler(req, res) {
   try {
-    // TODO: Check payment status from PayHero
+    const { reference } = req.query;
 
-    // Fake success (for testing)
-    return res.status(200).json({
+    if (!reference) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing reference"
+      });
+    }
+
+    const payment = payments[reference];
+
+    if (!payment) {
+      return res.json({
+        success: true,
+        status: "PENDING"
+      });
+    }
+
+    return res.json({
       success: true,
-      status: 'COMPLETED'
+      status: payment.status,
+      message: payment.message
     });
 
   } catch (error) {
+    console.error("VERIFY ERROR:", error);
+
     return res.status(500).json({
-      message: 'Verification failed'
+      success: false,
+      message: "Server error"
     });
   }
 }
