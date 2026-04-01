@@ -1,4 +1,5 @@
 // /api/callback.js
+import { payments } from "./store";
 
 let payments = {}; // shared temporary store
 
