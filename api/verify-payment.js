@@ -1,5 +1,7 @@
 // /api/verify-payment.js
 
+import { payments } from "./store";
+
 let payments = {}; // shared temporary store
 
 export default function handler(req, res) {
