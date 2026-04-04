@@ -1,126 +1,26 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
-  try {
-    const { phone_number, amount } = req.body;
-
-    if (!phone_number || !amount) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields"
-      });
-    }
-
-    // 🔴 IMPORTANT: REPLACE THIS WITH YOUR REAL TOKEN
-    const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
-
-    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${AUTH_TOKEN}`
-      },
-      body: JSON.stringify({
-        amount: amount,
-        phone_number: phone_number,
-        channel_id: 5284,
-        provider: "m-pesa",
-        external_reference: "INV-" + Date.now(),
-        customer_name: "Test User",
-        callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
-      })
-    });
-
-    const data = await response.json();
-
-    return res.status(200).json({
-      success: true,
-      payhero: data
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-}
-
-//previous code 
-
 import { payments } from "./store";
-export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ message: "Method not allowed" });
-    }
 
-    console.log("ENV KEY:", process.env.PAYHERO_API_KEY);
+export default function handler(req, res) {
+  const { reference } = req.query;
 
-    let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    }
-
-    const { phone_number, amount } = body;
-
-    if (!phone_number || !amount) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing phone or amount"
-      });
-    }
-
-    let phone = phone_number.replace(/\D/g, "");
-    if (phone.startsWith("0")) phone = "254" + phone.substring(1);
-
-    console.log("Sending to PayHero:", phone, amount);
-
-     const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
-
-    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${AUTH_TOKEN}`
-      },
-      body: JSON.stringify({
-        amount: amount,
-        phone_number: phone_number,
-        channel_id: 5284,
-        provider: "m-pesa",
-        external_reference: "INV-" + Date.now(),
-        customer_name: "Test User",
-        callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
-      })
-    });
-
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (err) {
-      const text = await response.text();
-      console.log("Non-JSON response:", text);
-      throw new Error("Invalid JSON from PayHero");
-    }
-
-    console.log("PayHero response:", data);
-
-    return res.status(200).json({
-      success: true,
-      payhero: data
-    });
-
-  } catch (error) {
-    console.error("FULL ERROR:", error);
-
-    return res.status(500).json({
+  if (!reference) {
+    return res.status(400).json({
       success: false,
-      error: error.message
+      message: "Missing reference"
     });
   }
-}
 
+  const payment = payments[reference];
+
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
+      message: "Payment not found"
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    status: payment.status || "PENDING"
+  });
+}
