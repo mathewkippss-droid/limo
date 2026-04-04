@@ -1203,47 +1203,68 @@
       }
     }
 
-    // Check payment status
-    async function checkPaymentStatus(reference, maxAttempts = 20, intervalMs = 3000) {
-      let attempts = 0;
-      
-      return new Promise((resolve, reject) => {
-        const checkInterval = setInterval(async () => {
-          attempts++;
+   // Check payment status (improved & more patient)
+async function checkPaymentStatus(reference, maxAttempts = 45, intervalMs = 4000) {
+  let attempts = 0;
+
+  return new Promise((resolve, reject) => {
+    const checkInterval = setInterval(async () => {
+      attempts++;
+
+      try {
+        const response = await fetch(
+          `${API_ENDPOINTS.verifyPayment}?reference=${encodeURIComponent(reference)}`
+        );
+
+        // If server error, retry until timeout
+        if (!response.ok) {
+          console.warn(`Attempt ${attempts}: Server not ready`);
           
-          try {
-            const response = await fetch(`${API_ENDPOINTS.verifyPayment}?reference=${encodeURIComponent(reference)}`);
-            
-            if (!response.ok) {
-              if (attempts >= maxAttempts) {
-                clearInterval(checkInterval);
-                reject(new Error('Payment verification failed'));
-              }
-              return;
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && (data.status === 'COMPLETED' || data.status === 'SUCCESS')) {
-              clearInterval(checkInterval);
-              resolve(true);
-            } else if (data.success && (data.status === 'FAILED' || data.status === 'CANCELLED')) {
-              clearInterval(checkInterval);
-              reject(new Error('Payment failed or was cancelled'));
-            } else if (attempts >= maxAttempts) {
-              clearInterval(checkInterval);
-              reject(new Error('Payment verification timeout'));
-            }
-          } catch (error) {
-            console.error('Payment status check error:', error);
-            if (attempts >= maxAttempts) {
-              clearInterval(checkInterval);
-              reject(new Error('Payment verification failed'));
-            }
+          if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            reject(new Error('Payment verification failed (server error)'));
           }
-        }, intervalMs);
-      });
-    }
+          return;
+        }
+
+        const data = await response.json();
+        console.log(`Attempt ${attempts}:`, data.status);
+
+        // ✅ SUCCESS (only trust this)
+        if (data.success && (data.status === 'COMPLETED' || data.status === 'SUCCESS')) {
+          clearInterval(checkInterval);
+          return resolve(true);
+        }
+
+        // ❌ CANCELLED (user explicitly cancelled → fail immediately)
+        if (data.success && data.status === 'CANCELLED') {
+          clearInterval(checkInterval);
+          return reject(new Error('Payment was cancelled'));
+        }
+
+        // ⚠️ FAILED (DON’T fail immediately — keep polling)
+        if (data.success && data.status === 'FAILED') {
+          console.warn(`Attempt ${attempts}: Still FAILED, retrying...`);
+        }
+
+        // ⏳ TIMEOUT (final fallback)
+        if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          return reject(new Error('Payment verification timeout'));
+        }
+
+      } catch (error) {
+        console.error(`Attempt ${attempts} error:`, error);
+
+        // Retry on network errors until timeout
+        if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          reject(new Error('Payment verification failed (network error)'));
+        }
+      }
+    }, intervalMs);
+  });
+}
 
     // Main payment initiation function - MOBILE OPTIMIZED
     async function initiatePayment() {
