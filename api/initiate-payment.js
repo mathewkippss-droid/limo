@@ -1,17 +1,12 @@
 import { payments } from "./store";
+
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ message: "Method not allowed" });
     }
 
-    console.log("ENV KEY:", process.env.PAYHERO_API_KEY);
-
-    let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    }
-
+    let body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const { phone_number, amount } = body;
 
     if (!phone_number || !amount) {
@@ -24,9 +19,9 @@ export default async function handler(req, res) {
     let phone = phone_number.replace(/\D/g, "");
     if (phone.startsWith("0")) phone = "254" + phone.substring(1);
 
-    console.log("Sending to PayHero:", phone, amount);
+    const reference = "INV-" + Date.now();
 
-     const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
+    const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
 
     const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
@@ -36,35 +31,32 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         amount: amount,
-        phone_number: phone_number,
+        phone_number: phone,
         channel_id: 5284,
         provider: "m-pesa",
-        external_reference: "INV-" + Date.now(),
+        external_reference: reference,
         customer_name: "Test User",
         callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
       })
     });
 
+    const data = await response.json();
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (err) {
-      const text = await response.text();
-      console.log("Non-JSON response:", text);
-      throw new Error("Invalid JSON from PayHero");
-    }
-
-    console.log("PayHero response:", data);
+    // ✅ STORE PAYMENT (VERY IMPORTANT)
+    payments[reference] = {
+      status: "PENDING",
+      amount,
+      phone,
+      createdAt: Date.now()
+    };
 
     return res.status(200).json({
       success: true,
+      reference: reference, // 👈 frontend needs THIS
       payhero: data
     });
 
   } catch (error) {
-    console.error("FULL ERROR:", error);
-
     return res.status(500).json({
       success: false,
       error: error.message
