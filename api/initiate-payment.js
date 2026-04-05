@@ -26,21 +26,21 @@ export default async function handler(req, res) {
     ]);
 
     // ✅ PAYHERO REQUEST
-    const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ=="
-      },
-      body: JSON.stringify({
-        amount,
-        phone_number: phone,
-        channel_id: 5284,
-        provider: "m-pesa",
-        external_reference: reference,
-        callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
-      })
-    });
+const response = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Basic QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ=="
+  },
+  body: JSON.stringify({
+    amount,
+    phone_number: phone,
+    channel_id: 5284,
+    provider: "m-pesa",
+    external_reference: reference,
+    callback_url: "https://fulizaincrease-iota.vercel.app/api/callback"
+  })
+});
 
     const data = await response.json();
 
