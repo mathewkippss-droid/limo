@@ -1,9 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
+//import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://qprdbpliztynjlayyniu.supabase.co",
-  "sb_publishable_wJK1F-b2e7oAuoZhX7JX9g_S9OEGoMb"
-);
+//const supabase = createClient(
+  //"https://qprdbpliztynjlayyniu.supabase.co",
+  //"sb_publishable_wJK1F-b2e7oAuoZhX7JX9g_S9OEGoMb"
+//);
 
 export default async function handler(req, res) {
   try {
@@ -16,14 +16,14 @@ export default async function handler(req, res) {
     const reference = "INV-" + Date.now();
 
     // ✅ SAVE TO SUPABASE
-    await supabase.from("payments").insert([
-      {
-        reference,
-        phone,
-        amount,
-        status: "PENDING"
-      }
-    ]);
+//    await supabase.from("payments").insert([
+  //    {
+    //    reference,
+      //  phone,
+        //amount,
+       // status: "PENDING"
+     // }
+   // ]);
 
     // ✅ PAYHERO REQUEST
     const AUTH_TOKEN = "QWpBeXNOMFpSWDZIalBBTVVXb206UkNmczh0UkN1RmRZTFdMdFBaaHU0UlkxQjVEODQ0ZWNqeHgzaml4WQ==";
